@@ -2,13 +2,11 @@ const PROFILE_KEY = "sololeveling_profile";
 
 export interface UserProfile {
   name: string;
-  age: string;
   categories: string[];
 }
 
 const DEFAULT_PROFILE: UserProfile = {
   name: "",
-  age: "",
   categories: [],
 };
 

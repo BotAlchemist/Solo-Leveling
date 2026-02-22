@@ -147,19 +147,7 @@ export default function SettingsPage({ onBack, onLogout }: SettingsPageProps) {
                 />
               </div>
 
-              <div className="hud-field">
-                <label className="hud-label" htmlFor="s-age">Age</label>
-                <input
-                  id="s-age"
-                  type="number"
-                  className="hud-input hud-input-narrow"
-                  placeholder="e.g. 25"
-                  min={1}
-                  max={120}
-                  value={profile.age}
-                  onChange={(e) => setProfile((p) => ({ ...p, age: e.target.value }))}
-                />
-              </div>
+
             </div>
 
             {/* ── Categories ── */}
