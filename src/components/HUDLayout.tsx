@@ -1,14 +1,13 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../styles/hud.css";
 
 interface HUDLayoutProps {
   children: React.ReactNode;
-  /** Player level number, defaults to 1 */
   level?: number;
-  /** Single letter rank, defaults to "E" */
   rank?: string;
   onLogout?: () => void;
   onSettings?: () => void;
+  onStats?: () => void;
 }
 
 export default function HUDLayout({
@@ -17,7 +16,29 @@ export default function HUDLayout({
   rank = "E",
   onLogout,
   onSettings,
+  onStats,
 }: HUDLayoutProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const closeAndCall = (fn?: () => void) => {
+    setMenuOpen(false);
+    fn?.();
+  };
+
+  const hasActions = onStats || onSettings || onLogout;
+
   return (
     <div className="hud-root">
       <header className="hud-header">
@@ -25,26 +46,59 @@ export default function HUDLayout({
 
         <div className="hud-player-info">
           <span>Lv.{level}</span>
-          <div className="hud-rank-badge" title={`Rank ${rank}`}>
-            {rank}
+          <div className="hud-rank-badge" title={`Rank ${rank}`}>{rank}</div>
+
+          {/* Desktop buttons — hidden on mobile via CSS */}
+          <div className="hud-nav-desktop">
+            {onStats && (
+              <button className="hud-btn hud-btn-sm" onClick={onStats} title="Stats">
+                ◈ STATS
+              </button>
+            )}
+            {onSettings && (
+              <button className="hud-btn hud-btn-sm" onClick={onSettings} title="Settings">
+                ⚙ SETTINGS
+              </button>
+            )}
+            {onLogout && (
+              <button className="hud-btn hud-btn-logout" onClick={onLogout} title="Sign out">
+                ⏏ LOGOUT
+              </button>
+            )}
           </div>
-          {onSettings && (
-            <button
-              className="hud-btn hud-btn-sm"
-              onClick={onSettings}
-              title="Settings"
-            >
-              ⚙ SETTINGS
-            </button>
-          )}
-          {onLogout && (
-            <button
-              className="hud-btn hud-btn-logout"
-              onClick={onLogout}
-              title="Sign out"
-            >
-              ⏏ LOGOUT
-            </button>
+
+          {/* Burger menu — shown only on mobile */}
+          {hasActions && (
+            <div className="hud-burger-wrap" ref={menuRef}>
+              <button
+                className={`hud-burger${menuOpen ? " hud-burger--open" : ""}`}
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-label="Toggle menu"
+                aria-expanded={menuOpen}
+              >
+                <span /><span /><span />
+              </button>
+
+              {menuOpen && (
+                <div className="hud-dropdown">
+                  {onStats && (
+                    <button className="hud-dropdown-item" onClick={() => closeAndCall(onStats)}>
+                      ◈ STATS
+                    </button>
+                  )}
+                  {onSettings && (
+                    <button className="hud-dropdown-item" onClick={() => closeAndCall(onSettings)}>
+                      ⚙ SETTINGS
+                    </button>
+                  )}
+                  {onLogout && (
+                    <button className="hud-dropdown-item hud-dropdown-item--danger" onClick={() => closeAndCall(onLogout)}>
+                      ⏏ LOGOUT
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </header>

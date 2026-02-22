@@ -3,8 +3,9 @@ import { signOut } from 'aws-amplify/auth'
 import LoginPage from './pages/LoginPage'
 import DailyLogPage from './pages/DailyLogPage'
 import SettingsPage from './pages/SettingsPage'
+import StatsPage from './pages/StatsPage'
 
-type Page = 'login' | 'app' | 'settings'
+type Page = 'login' | 'app' | 'settings' | 'stats'
 
 function App() {
   const [page, setPage] = useState<Page>('login')
@@ -22,7 +23,23 @@ function App() {
     return <SettingsPage onBack={() => setPage('app')} onLogout={handleLogout} />
   }
 
-  return <DailyLogPage onLogout={handleLogout} onSettings={() => setPage('settings')} />
+  if (page === 'stats') {
+    return (
+      <StatsPage
+        onBack={() => setPage('app')}
+        onLogout={handleLogout}
+        onSettings={() => setPage('settings')}
+      />
+    )
+  }
+
+  return (
+    <DailyLogPage
+      onLogout={handleLogout}
+      onSettings={() => setPage('settings')}
+      onStats={() => setPage('stats')}
+    />
+  )
 }
 
 export default App

@@ -22,6 +22,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Password visibility toggles
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   // ── Step 1: initial sign-in ──────────────────────────────────────────
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -104,17 +109,28 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
               <div className="hud-field">
                 <label className="hud-label" htmlFor="password">ACCESS KEY</label>
-                <input
-                  id="password"
-                  type="password"
-                  className="hud-input"
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  disabled={loading}
-                  required
-                />
+                <div className="hud-input-wrap">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    className="hud-input"
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    disabled={loading}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="hud-eye-btn"
+                    onClick={() => setShowPassword((v) => !v)}
+                    tabIndex={-1}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
               </div>
 
               {error && <p className="hud-login-error" role="alert">{error}</p>}
@@ -133,32 +149,54 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <form onSubmit={handleNewPassword} noValidate>
               <div className="hud-field">
                 <label className="hud-label" htmlFor="new-password">NEW PASSWORD</label>
-                <input
-                  id="new-password"
-                  type="password"
-                  className="hud-input"
-                  placeholder="Min. 8 characters"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={loading}
-                  required
-                />
+                <div className="hud-input-wrap">
+                  <input
+                    id="new-password"
+                    type={showNew ? "text" : "password"}
+                    className="hud-input"
+                    placeholder="Min. 8 characters"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
+                    disabled={loading}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="hud-eye-btn"
+                    onClick={() => setShowNew((v) => !v)}
+                    tabIndex={-1}
+                    aria-label={showNew ? "Hide password" : "Show password"}
+                  >
+                    {showNew ? "🙈" : "👁️"}
+                  </button>
+                </div>
               </div>
 
               <div className="hud-field">
                 <label className="hud-label" htmlFor="confirm-password">CONFIRM PASSWORD</label>
-                <input
-                  id="confirm-password"
-                  type="password"
-                  className="hud-input"
-                  placeholder="Re-enter password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={loading}
-                  required
-                />
+                <div className="hud-input-wrap">
+                  <input
+                    id="confirm-password"
+                    type={showConfirm ? "text" : "password"}
+                    className="hud-input"
+                    placeholder="Re-enter password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                    disabled={loading}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="hud-eye-btn"
+                    onClick={() => setShowConfirm((v) => !v)}
+                    tabIndex={-1}
+                    aria-label={showConfirm ? "Hide password" : "Show password"}
+                  >
+                    {showConfirm ? "🙈" : "👁️"}
+                  </button>
+                </div>
               </div>
 
               {error && <p className="hud-login-error" role="alert">{error}</p>}

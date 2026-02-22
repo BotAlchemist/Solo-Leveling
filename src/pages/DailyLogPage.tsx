@@ -1,16 +1,17 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import HUDLayout from "../components/HUDLayout";
 import SystemToast from "../components/SystemToast";
 import type { ToastMessage } from "../components/SystemToast";
-import { addLog, getTodaysLogs } from "../lib/storage";
+import { addLog } from "../lib/storage";
 import type { LogItem } from "../lib/storage";
 import { getProfile } from "../lib/profile";
-import { apiPost } from "../lib/api";
+import { apiGet, apiPost } from "../lib/api";
 import "../styles/hud.css";
 
 interface DailyLogPageProps {
   onLogout?: () => void;
   onSettings?: () => void;
+  onStats?: () => void;
 }
 
 function formatTime(iso: string): string {
@@ -20,13 +21,36 @@ function formatTime(iso: string): string {
   });
 }
 
-export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps) {
+export default function DailyLogPage({ onLogout, onSettings, onStats }: DailyLogPageProps) {
   const categories = getProfile().categories;
   const [input, setInput] = useState("");
   const [category, setCategory] = useState(categories[0] ?? "");
-  const [logs, setLogs] = useState<LogItem[]>(() => getTodaysLogs());
+  const [logs, setLogs] = useState<LogItem[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(true);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch today's logs from DynamoDB on mount
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    apiGet<{ logs: Array<{ userid: string; timestamp: string; category: string; activity: string }> }>(
+      `/logs?date=${today}`
+    )
+      .then((res) => {
+        const fetched: LogItem[] = res.logs.map((l) => ({
+          id: l.timestamp,
+          text: l.activity,
+          category: l.category,
+          createdAt: l.timestamp,
+        }));
+        // already sorted latest-first by backend
+        setLogs(fetched);
+      })
+      .catch(() => {
+        // fallback: nothing shown, user will see empty state
+      })
+      .finally(() => setLoadingLogs(false));
+  }, []);
 
   const pushToast = (text: string) => {
     setToasts((prev) => [
@@ -47,10 +71,17 @@ export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps
     setSubmitting(true);
     try {
       // Save to DynamoDB
-      await apiPost("/logs", { activity: trimmed, category });
-      // Mirror to localStorage for instant local reads
+      const res = await apiPost<{ timestamp: string }>("/logs", { activity: trimmed, category });
+      // Mirror to localStorage as cache
       addLog(trimmed, category);
-      setLogs(getTodaysLogs());
+      // Prepend the new log directly to state (instant UI update)
+      const newLog: LogItem = {
+        id: res.timestamp,
+        text: trimmed,
+        category,
+        createdAt: res.timestamp,
+      };
+      setLogs((prev) => [newLog, ...prev]);
       setInput("");
       pushToast("SYSTEM: Activity recorded. +1 XP");
     } catch {
@@ -61,7 +92,7 @@ export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps
   };
 
   return (
-    <HUDLayout onLogout={onLogout} onSettings={onSettings}>
+    <HUDLayout onLogout={onLogout} onSettings={onSettings} onStats={onStats}>
       {/* ── Input panel ── */}
       <div className="hud-card">
         <h1 className="hud-section-title">Log Activity</h1>
@@ -112,7 +143,9 @@ export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps
           )}
         </h2>
 
-        {logs.length === 0 ? (
+        {loadingLogs ? (
+          <p className="log-empty">Loading…</p>
+        ) : logs.length === 0 ? (
           <p className="log-empty">— No activities logged today —</p>
         ) : (
           <ul className="log-list" aria-label="Today's activity logs">
