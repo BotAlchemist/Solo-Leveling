@@ -1,0 +1,419 @@
+/* ============================================================
+   Solo Leveling – HUD Theme
+   ============================================================ */
+
+/* ---------- Reset / Base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --clr-bg:          #090b10;
+  --clr-bg2:         #0d1117;
+  --clr-surface:     rgba(15, 22, 36, 0.85);
+  --clr-border:      rgba(0, 200, 255, 0.18);
+  --clr-border-hover:rgba(0, 200, 255, 0.55);
+  --clr-neon:        #00c8ff;
+  --clr-neon-dim:    rgba(0, 200, 255, 0.35);
+  --clr-accent:      #9b59ff;
+  --clr-text:        #c8d8e8;
+  --clr-text-dim:    #5a7080;
+  --clr-success:     #00ffaa;
+  --font-hud:        'Courier New', 'Consolas', monospace;
+  --font-ui:         'Segoe UI', system-ui, sans-serif;
+  --radius:          6px;
+  --glow-neon:       0 0 8px rgba(0, 200, 255, 0.45), 0 0 20px rgba(0, 200, 255, 0.18);
+  --glow-accent:     0 0 8px rgba(155, 89, 255, 0.5);
+  --transition:      0.2s ease;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  font-family: var(--font-ui);
+  line-height: 1.6;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--clr-bg2); }
+::-webkit-scrollbar-thumb { background: var(--clr-neon-dim); border-radius: 3px; }
+
+/* ---------- HUD Layout ---------- */
+.hud-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(0, 200, 255, 0.05) 0%, transparent 70%),
+    var(--clr-bg);
+}
+
+/* Header */
+.hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: rgba(9, 11, 16, 0.92);
+  border-bottom: 1px solid var(--clr-border);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.hud-brand {
+  font-family: var(--font-hud);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--clr-neon);
+  text-shadow: var(--glow-neon);
+  text-transform: uppercase;
+}
+
+.hud-player-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-hud);
+  font-size: 0.78rem;
+  color: var(--clr-text-dim);
+  letter-spacing: 0.08em;
+}
+
+.hud-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--clr-accent);
+  border-radius: 4px;
+  font-family: var(--font-hud);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--clr-accent);
+  box-shadow: var(--glow-accent);
+  letter-spacing: 0;
+}
+
+/* Content */
+.hud-content {
+  flex: 1;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 20px 60px;
+}
+
+/* ---------- Cards / Panels ---------- */
+.hud-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  backdrop-filter: blur(6px);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.hud-card:hover {
+  border-color: var(--clr-border-hover);
+  box-shadow: var(--glow-neon);
+}
+
+/* ---------- Typography ---------- */
+.hud-section-title {
+  font-family: var(--font-hud);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--clr-neon);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hud-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background: var(--clr-neon);
+  border-radius: 2px;
+  box-shadow: var(--glow-neon);
+}
+
+/* ---------- Form ---------- */
+.hud-textarea {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  color: var(--clr-text);
+  font-family: var(--font-ui);
+  font-size: 0.93rem;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  margin-bottom: 14px;
+}
+
+.hud-textarea::placeholder { color: var(--clr-text-dim); }
+
+.hud-textarea:focus {
+  border-color: var(--clr-neon);
+  box-shadow: 0 0 0 2px rgba(0, 200, 255, 0.15);
+}
+
+.hud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 22px;
+  background: transparent;
+  border: 1.5px solid var(--clr-neon);
+  border-radius: var(--radius);
+  color: var(--clr-neon);
+  font-family: var(--font-hud);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--transition), box-shadow var(--transition), color var(--transition);
+}
+
+.hud-btn:hover:not(:disabled) {
+  background: rgba(0, 200, 255, 0.1);
+  box-shadow: var(--glow-neon);
+}
+
+.hud-btn:focus-visible {
+  outline: 2px solid var(--clr-neon);
+  outline-offset: 3px;
+}
+
+.hud-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ---------- Log Items ---------- */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.log-item {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  transition: border-color var(--transition);
+}
+
+.log-item:hover { border-color: var(--clr-border-hover); }
+
+.log-item-meta {
+  font-family: var(--font-hud);
+  font-size: 0.68rem;
+  color: var(--clr-neon);
+  letter-spacing: 0.1em;
+  margin-bottom: 5px;
+  opacity: 0.7;
+}
+
+.log-item-text {
+  font-size: 0.9rem;
+  color: var(--clr-text);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.log-empty {
+  font-family: var(--font-hud);
+  font-size: 0.78rem;
+  color: var(--clr-text-dim);
+  text-align: center;
+  padding: 22px 0;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Toast ---------- */
+.system-toast-wrapper {
+  position: fixed;
+  top: 72px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.system-toast {
+  background: rgba(9, 11, 16, 0.95);
+  border: 1px solid var(--clr-neon);
+  border-radius: var(--radius);
+  padding: 11px 18px;
+  font-family: var(--font-hud);
+  font-size: 0.8rem;
+  color: var(--clr-success);
+  letter-spacing: 0.08em;
+  box-shadow: var(--glow-neon);
+  backdrop-filter: blur(8px);
+  animation: toast-in 0.25s ease, toast-out 0.4s ease 2.1s forwards;
+  max-width: 300px;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+/* ---------- Spacing helpers ---------- */
+.mt-24 { margin-top: 24px; }
+.mb-0  { margin-bottom: 0; }
+
+/* ---------- Login Page ---------- */
+.hud-login-root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(0, 200, 255, 0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 30% at 80% 80%, rgba(155, 89, 255, 0.06) 0%, transparent 60%),
+    var(--clr-bg);
+  padding: 24px;
+  overflow: hidden;
+}
+
+/* Subtle dot-grid ambient */
+.hud-login-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(0, 200, 255, 0.09) 1px, transparent 1px);
+  background-size: 36px 36px;
+  pointer-events: none;
+}
+
+.hud-login-card {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  padding: 40px 36px 32px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 40px rgba(0, 200, 255, 0.07);
+}
+
+.hud-login-brand {
+  font-family: var(--font-hud);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--clr-neon);
+  text-shadow: var(--glow-neon);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.hud-login-subtitle {
+  font-family: var(--font-hud);
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  color: var(--clr-text-dim);
+  text-align: center;
+  margin-bottom: 32px;
+  text-transform: uppercase;
+}
+
+/* Field wrapper */
+.hud-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.hud-label {
+  font-family: var(--font-hud);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  color: var(--clr-neon);
+  opacity: 0.75;
+  text-transform: uppercase;
+}
+
+.hud-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  color: var(--clr-text);
+  font-family: var(--font-ui);
+  font-size: 0.93rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.hud-input::placeholder { color: var(--clr-text-dim); }
+
+.hud-input:focus {
+  border-color: var(--clr-neon);
+  box-shadow: 0 0 0 2px rgba(0, 200, 255, 0.15);
+}
+
+.hud-input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Block-width button modifier */
+.hud-btn-block {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+  padding: 11px 22px;
+  font-size: 0.82rem;
+}
+
+.hud-login-error {
+  font-family: var(--font-hud);
+  font-size: 0.75rem;
+  color: #ff4d6d;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 77, 109, 0.3);
+  border-radius: var(--radius);
+  background: rgba(255, 77, 109, 0.07);
+}
+
+.hud-login-hint {
+  font-family: var(--font-hud);
+  font-size: 0.62rem;
+  color: var(--clr-text-dim);
+  text-align: center;
+  letter-spacing: 0.1em;
+  margin-top: 24px;
+  opacity: 0.5;
+}
