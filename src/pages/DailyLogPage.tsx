@@ -12,6 +12,7 @@ interface DailyLogPageProps {
   onLogout?: () => void;
   onSettings?: () => void;
   onStats?: () => void;
+  onHelp?: () => void;
 }
 
 function formatTime(iso: string): string {
@@ -21,7 +22,7 @@ function formatTime(iso: string): string {
   });
 }
 
-export default function DailyLogPage({ onLogout, onSettings, onStats }: DailyLogPageProps) {
+export default function DailyLogPage({ onLogout, onSettings, onStats, onHelp }: DailyLogPageProps) {
   const categories = getProfile().categories;
   const [input, setInput] = useState("");
   const [category, setCategory] = useState(categories[0] ?? "");
@@ -92,7 +93,7 @@ export default function DailyLogPage({ onLogout, onSettings, onStats }: DailyLog
   };
 
   return (
-    <HUDLayout onLogout={onLogout} onSettings={onSettings} onStats={onStats}>
+    <HUDLayout onLogout={onLogout} onSettings={onSettings} onStats={onStats} onHelp={onHelp}>
       {/* ── Input panel ── */}
       <div className="hud-card">
         <h1 className="hud-section-title">Log Activity</h1>

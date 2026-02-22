@@ -90,7 +90,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
         {step === "login" ? (
           <>
-            <p className="hud-login-subtitle">SYSTEM AUTHENTICATION REQUIRED</p>
             <form onSubmit={handleLogin} noValidate>
               <div className="hud-field">
                 <label className="hud-label" htmlFor="email">USER ID</label>
@@ -208,7 +207,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </>
         )}
 
-        <p className="hud-login-hint">Powered by AWS Cognito</p>
+        <p className="hud-login-hint">Developed by dark.alchemist</p>
       </div>
     </div>
   );

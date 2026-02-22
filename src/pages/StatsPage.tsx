@@ -16,6 +16,7 @@ interface StatsPageProps {
   onBack: () => void;
   onLogout?: () => void;
   onSettings?: () => void;
+  onHelp?: () => void;
 }
 
 interface XpData {
@@ -23,7 +24,7 @@ interface XpData {
   xp: number;
 }
 
-export default function StatsPage({ onBack, onLogout, onSettings }: StatsPageProps) {
+export default function StatsPage({ onBack, onLogout, onSettings, onHelp }: StatsPageProps) {
   const [data, setData] = useState<XpData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -78,6 +79,7 @@ export default function StatsPage({ onBack, onLogout, onSettings }: StatsPagePro
       rank={rank(totalXp)}
       onLogout={onLogout}
       onSettings={onSettings}
+      onHelp={onHelp}
     >
       <div className="stats-page">
         <div className="hud-card stats-card">

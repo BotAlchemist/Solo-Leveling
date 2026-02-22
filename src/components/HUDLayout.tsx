@@ -8,6 +8,7 @@ interface HUDLayoutProps {
   onLogout?: () => void;
   onSettings?: () => void;
   onStats?: () => void;
+  onHelp?: () => void;
 }
 
 export default function HUDLayout({
@@ -17,6 +18,7 @@ export default function HUDLayout({
   onLogout,
   onSettings,
   onStats,
+  onHelp,
 }: HUDLayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -37,7 +39,7 @@ export default function HUDLayout({
     fn?.();
   };
 
-  const hasActions = onStats || onSettings || onLogout;
+  const hasActions = onStats || onSettings || onLogout || onHelp;
 
   return (
     <div className="hud-root">
@@ -53,6 +55,11 @@ export default function HUDLayout({
             {onStats && (
               <button className="hud-btn hud-btn-sm" onClick={onStats} title="Stats">
                 ◈ STATS
+              </button>
+            )}
+            {onHelp && (
+              <button className="hud-btn hud-btn-sm" onClick={onHelp} title="Help">
+                ? HELP
               </button>
             )}
             {onSettings && (
@@ -84,6 +91,11 @@ export default function HUDLayout({
                   {onStats && (
                     <button className="hud-dropdown-item" onClick={() => closeAndCall(onStats)}>
                       ◈ STATS
+                    </button>
+                  )}
+                  {onHelp && (
+                    <button className="hud-dropdown-item" onClick={() => closeAndCall(onHelp)}>
+                      ? HELP
                     </button>
                   )}
                   {onSettings && (
