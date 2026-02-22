@@ -27,6 +27,7 @@
 
 html, body, #root {
   height: 100%;
+  font-size: 17px;
   background: var(--clr-bg);
   color: var(--clr-text);
   font-family: var(--font-ui);
@@ -395,6 +396,135 @@ html, body, #root {
   padding: 11px 22px;
   font-size: 0.82rem;
 }
+
+/* Logout button — smaller, muted red tint */
+.hud-btn-logout {
+  padding: 5px 12px;
+  font-size: 0.7rem;
+  border-color: rgba(255, 77, 109, 0.5);
+  color: rgba(255, 77, 109, 0.8);
+  letter-spacing: 0.1em;
+}
+
+.hud-btn-logout:hover:not(:disabled) {
+  background: rgba(255, 77, 109, 0.1);
+  border-color: #ff4d6d;
+  color: #ff4d6d;
+  box-shadow: 0 0 8px rgba(255, 77, 109, 0.35);
+}
+
+/* Small neutral button (Settings, Back) */
+.hud-btn-sm {
+  padding: 5px 12px;
+  font-size: 0.7rem;
+  border-color: rgba(0, 200, 255, 0.35);
+  color: rgba(0, 200, 255, 0.65);
+  letter-spacing: 0.1em;
+}
+
+.hud-btn-sm:hover:not(:disabled) {
+  background: rgba(0, 200, 255, 0.08);
+  border-color: var(--clr-neon);
+  color: var(--clr-neon);
+  box-shadow: var(--glow-neon);
+}
+
+/* Inline add button (+ category) */
+.hud-btn-add {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  font-size: 1.1rem;
+  justify-content: center;
+  border-radius: var(--radius);
+}
+
+/* Narrow number input */
+.hud-input-narrow {
+  max-width: 120px;
+}
+
+/* ---------- Settings Page ---------- */
+.settings-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.settings-group {
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--clr-border);
+}
+
+.settings-group:last-of-type { border-bottom: none; }
+
+.settings-group-title {
+  font-family: var(--font-hud);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--clr-accent);
+  margin-bottom: 16px;
+}
+
+.settings-group-hint {
+  font-size: 0.8rem;
+  color: var(--clr-text-dim);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+/* Category chips */
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 12px;
+  background: rgba(155, 89, 255, 0.12);
+  border: 1px solid rgba(155, 89, 255, 0.35);
+  border-radius: 20px;
+  font-family: var(--font-hud);
+  font-size: 0.75rem;
+  color: var(--clr-accent);
+  letter-spacing: 0.06em;
+}
+
+.category-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(155, 89, 255, 0.6);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition);
+}
+
+.category-chip-remove:hover { color: #ff4d6d; }
+
+/* Add row */
+.category-add-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.category-add-row .hud-input { margin-bottom: 0; }
+
+.settings-save-row { margin-top: 8px; }
 
 .hud-login-error {
   font-family: var(--font-hud);

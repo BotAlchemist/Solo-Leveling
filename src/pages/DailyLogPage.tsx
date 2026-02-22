@@ -6,6 +6,11 @@ import { addLog, getTodaysLogs } from "../lib/storage";
 import type { LogItem } from "../lib/storage";
 import "../styles/hud.css";
 
+interface DailyLogPageProps {
+  onLogout?: () => void;
+  onSettings?: () => void;
+}
+
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString([], {
     hour: "2-digit",
@@ -13,7 +18,7 @@ function formatTime(iso: string): string {
   });
 }
 
-export default function DailyLogPage() {
+export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps) {
   const [input, setInput] = useState("");
   const [logs, setLogs] = useState<LogItem[]>(() => getTodaysLogs());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -41,7 +46,7 @@ export default function DailyLogPage() {
   };
 
   return (
-    <HUDLayout>
+    <HUDLayout onLogout={onLogout} onSettings={onSettings}>
       {/* ── Input panel ── */}
       <div className="hud-card">
         <h1 className="hud-section-title">Log Activity</h1>

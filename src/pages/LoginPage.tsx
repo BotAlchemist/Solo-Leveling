@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { signIn, confirmSignIn } from "aws-amplify/auth";
+import { signIn, signOut, confirmSignIn } from "aws-amplify/auth";
 import "../styles/hud.css";
 
 interface LoginPageProps {
@@ -29,6 +29,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setLoading(true);
 
     try {
+      // Clear any stale / partial session before signing in
+      await signOut().catch(() => {});
+
       const { isSignedIn, nextStep } = await signIn({ username: email, password });
 
       if (isSignedIn) {

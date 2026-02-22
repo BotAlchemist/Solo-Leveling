@@ -7,12 +7,16 @@ interface HUDLayoutProps {
   level?: number;
   /** Single letter rank, defaults to "E" */
   rank?: string;
+  onLogout?: () => void;
+  onSettings?: () => void;
 }
 
 export default function HUDLayout({
   children,
   level = 1,
   rank = "E",
+  onLogout,
+  onSettings,
 }: HUDLayoutProps) {
   return (
     <div className="hud-root">
@@ -24,6 +28,24 @@ export default function HUDLayout({
           <div className="hud-rank-badge" title={`Rank ${rank}`}>
             {rank}
           </div>
+          {onSettings && (
+            <button
+              className="hud-btn hud-btn-sm"
+              onClick={onSettings}
+              title="Settings"
+            >
+              ⚙ SETTINGS
+            </button>
+          )}
+          {onLogout && (
+            <button
+              className="hud-btn hud-btn-logout"
+              onClick={onLogout}
+              title="Sign out"
+            >
+              ⏏ LOGOUT
+            </button>
+          )}
         </div>
       </header>
 
