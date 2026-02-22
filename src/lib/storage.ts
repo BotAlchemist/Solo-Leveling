@@ -1,6 +1,7 @@
 export interface LogItem {
   id: string;
   text: string;
+  category: string;
   createdAt: string; // ISO string
 }
 
@@ -15,10 +16,11 @@ export function getLogs(): LogItem[] {
   }
 }
 
-export function addLog(text: string): LogItem {
+export function addLog(text: string, category: string): LogItem {
   const item: LogItem = {
     id: crypto.randomUUID(),
     text: text.trim(),
+    category,
     createdAt: new Date().toISOString(),
   };
   const logs = getLogs();

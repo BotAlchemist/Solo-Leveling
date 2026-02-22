@@ -4,6 +4,8 @@ import SystemToast from "../components/SystemToast";
 import type { ToastMessage } from "../components/SystemToast";
 import { addLog, getTodaysLogs } from "../lib/storage";
 import type { LogItem } from "../lib/storage";
+import { getProfile } from "../lib/profile";
+import { apiPost } from "../lib/api";
 import "../styles/hud.css";
 
 interface DailyLogPageProps {
@@ -19,9 +21,12 @@ function formatTime(iso: string): string {
 }
 
 export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps) {
+  const categories = getProfile().categories;
   const [input, setInput] = useState("");
+  const [category, setCategory] = useState(categories[0] ?? "");
   const [logs, setLogs] = useState<LogItem[]>(() => getTodaysLogs());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const pushToast = (text: string) => {
     setToasts((prev) => [
@@ -34,15 +39,25 @@ export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || submitting) return;
 
-    addLog(trimmed);
-    setLogs(getTodaysLogs());
-    setInput("");
-    pushToast("SYSTEM: Activity recorded. +1 XP");
+    setSubmitting(true);
+    try {
+      // Save to DynamoDB
+      await apiPost("/logs", { activity: trimmed, category });
+      // Mirror to localStorage for instant local reads
+      addLog(trimmed, category);
+      setLogs(getTodaysLogs());
+      setInput("");
+      pushToast("SYSTEM: Activity recorded. +1 XP");
+    } catch {
+      pushToast("SYSTEM: Failed to save. Check connection.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -52,6 +67,23 @@ export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps
         <h1 className="hud-section-title">Log Activity</h1>
 
         <form onSubmit={handleSubmit}>
+          {categories.length > 0 && (
+            <div className="hud-field">
+              <label className="hud-label">Category</label>
+              <div className="category-selector">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    className={`category-card${category === cat ? " category-card--active" : ""}`}
+                    onClick={() => setCategory(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <textarea
             className="hud-textarea"
             placeholder="What did you work on? (e.g. Ran 3km, Studied React for 1h…)"
@@ -62,9 +94,9 @@ export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps
           <button
             type="submit"
             className="hud-btn"
-            disabled={!input.trim()}
+            disabled={!input.trim() || submitting}
           >
-            ▶ Record
+            {submitting ? "SAVING…" : "▶ Record"}
           </button>
         </form>
       </div>
@@ -86,7 +118,12 @@ export default function DailyLogPage({ onLogout, onSettings }: DailyLogPageProps
           <ul className="log-list" aria-label="Today's activity logs">
             {logs.map((log) => (
               <li key={log.id} className="log-item">
-                <div className="log-item-meta">{formatTime(log.createdAt)}</div>
+                <div className="log-item-meta">
+                  {formatTime(log.createdAt)}
+                  {log.category && (
+                    <span className="log-item-category">{log.category}</span>
+                  )}
+                </div>
                 <div className="log-item-text">{log.text}</div>
               </li>
             ))}
