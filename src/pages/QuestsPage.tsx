@@ -12,6 +12,7 @@ interface QuestsPageProps {
   onSettings?: () => void;
   onStats?: () => void;
   onHelp?: () => void;
+  onHealth?: () => void;
 }
 
 interface Quest {
@@ -23,7 +24,7 @@ interface Quest {
   completedAt?: string;
 }
 
-export default function QuestsPage({ onBack, onLogout, onSettings, onStats, onHelp }: QuestsPageProps) {
+export default function QuestsPage({ onBack, onLogout, onSettings, onStats, onHelp, onHealth }: QuestsPageProps) {
   const categories = getProfile().categories;
 
   const [quests, setQuests]       = useState<Quest[]>([]);
@@ -111,6 +112,7 @@ export default function QuestsPage({ onBack, onLogout, onSettings, onStats, onHe
       onSettings={onSettings}
       onStats={onStats}
       onHelp={onHelp}
+      onHealth={onHealth}
     >
       <SystemToast messages={toasts} onExpire={expireToast} />
 

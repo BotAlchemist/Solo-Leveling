@@ -3,11 +3,15 @@ const PROFILE_KEY = "sololeveling_profile";
 export interface UserProfile {
   name: string;
   categories: string[];
+  calorie_target?: number;
+  protein_target?: number;
 }
 
 const DEFAULT_PROFILE: UserProfile = {
   name: "",
   categories: [],
+  calorie_target: undefined,
+  protein_target: undefined,
 };
 
 export function getProfile(): UserProfile {

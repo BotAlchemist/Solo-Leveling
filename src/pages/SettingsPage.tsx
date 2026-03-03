@@ -147,6 +147,38 @@ export default function SettingsPage({ onBack, onLogout }: SettingsPageProps) {
                 />
               </div>
 
+              <div style={{ display: "flex", gap: "12px" }}>
+                <div className="hud-field" style={{ flex: 1 }}>
+                  <label className="hud-label" htmlFor="s-cal">
+                    Daily Calorie Target
+                    <span style={{ opacity: 0.5, fontWeight: 400, marginLeft: 6 }}>kcal</span>
+                  </label>
+                  <input
+                    id="s-cal"
+                    type="number"
+                    min={0}
+                    className="hud-input"
+                    placeholder="e.g. 2000"
+                    value={profile.calorie_target ?? ""}
+                    onChange={(e) => setProfile((p) => ({ ...p, calorie_target: e.target.value ? Number(e.target.value) : undefined }))}
+                  />
+                </div>
+                <div className="hud-field" style={{ flex: 1 }}>
+                  <label className="hud-label" htmlFor="s-prot">
+                    Daily Protein Target
+                    <span style={{ opacity: 0.5, fontWeight: 400, marginLeft: 6 }}>g</span>
+                  </label>
+                  <input
+                    id="s-prot"
+                    type="number"
+                    min={0}
+                    className="hud-input"
+                    placeholder="e.g. 150"
+                    value={profile.protein_target ?? ""}
+                    onChange={(e) => setProfile((p) => ({ ...p, protein_target: e.target.value ? Number(e.target.value) : undefined }))}
+                  />
+                </div>
+              </div>
 
             </div>
 

@@ -18,6 +18,7 @@ interface StatsPageProps {
   onSettings?: () => void;
   onHelp?: () => void;
   onQuests?: () => void;
+  onHealth?: () => void;
 }
 
 interface XpData {
@@ -25,7 +26,7 @@ interface XpData {
   xp: number;
 }
 
-export default function StatsPage({ onBack, onLogout, onSettings, onHelp, onQuests }: StatsPageProps) {
+export default function StatsPage({ onBack, onLogout, onSettings, onHelp, onQuests, onHealth }: StatsPageProps) {
   const [data, setData] = useState<XpData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -82,6 +83,7 @@ export default function StatsPage({ onBack, onLogout, onSettings, onHelp, onQues
       onSettings={onSettings}
       onHelp={onHelp}
       onQuests={onQuests}
+      onHealth={onHealth}
     >
       <div className="stats-page">
         <div className="hud-card stats-card">

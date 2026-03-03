@@ -14,8 +14,8 @@
   --clr-neon:        #00c8ff;
   --clr-neon-dim:    rgba(0, 200, 255, 0.35);
   --clr-accent:      #9b59ff;
-  --clr-text:        #c8d8e8;
-  --clr-text-dim:    #5a7080;
+  --clr-text:        #dce9f5;
+  --clr-text-dim:    #8ab8cc;
   --clr-success:     #00ffaa;
   --font-hud:        'Courier New', 'Consolas', monospace;
   --font-ui:         'Segoe UI', system-ui, sans-serif;
@@ -775,18 +775,18 @@ html, body, #root {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
   line-height: 1;
-  color: var(--clr-text-dim);
+  color: var(--clr-neon-dim);
   padding: 4px;
   display: flex;
   align-items: center;
-  opacity: 0.7;
-  transition: opacity var(--transition);
+  opacity: 0.75;
+  transition: opacity var(--transition), color var(--transition);
 }
 
 .hud-eye-btn:hover {
   opacity: 1;
+  color: var(--clr-neon);
 }
 
 /* ============================================================

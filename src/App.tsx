@@ -6,8 +6,9 @@ import SettingsPage from './pages/SettingsPage'
 import StatsPage from './pages/StatsPage'
 import HelpPage from './pages/HelpPage'
 import QuestsPage from './pages/QuestsPage'
+import HealthPage from './pages/HealthPage'
 
-type Page = 'login' | 'app' | 'settings' | 'stats' | 'help' | 'quests'
+type Page = 'login' | 'app' | 'settings' | 'stats' | 'help' | 'quests' | 'health'
 
 function App() {
   const [page, setPage] = useState<Page>('login')
@@ -33,6 +34,7 @@ function App() {
         onSettings={() => setPage('settings')}
         onHelp={() => setPage('help')}
         onQuests={() => setPage('quests')}
+        onHealth={() => setPage('health')}
       />
     )
   }
@@ -45,6 +47,7 @@ function App() {
         onSettings={() => setPage('settings')}
         onStats={() => setPage('stats')}
         onQuests={() => setPage('quests')}
+        onHealth={() => setPage('health')}
       />
     )
   }
@@ -57,6 +60,20 @@ function App() {
         onSettings={() => setPage('settings')}
         onStats={() => setPage('stats')}
         onHelp={() => setPage('help')}
+        onHealth={() => setPage('health')}
+      />
+    )
+  }
+
+  if (page === 'health') {
+    return (
+      <HealthPage
+        onBack={() => setPage('app')}
+        onLogout={handleLogout}
+        onSettings={() => setPage('settings')}
+        onStats={() => setPage('stats')}
+        onHelp={() => setPage('help')}
+        onQuests={() => setPage('quests')}
       />
     )
   }
@@ -68,6 +85,7 @@ function App() {
       onStats={() => setPage('stats')}
       onHelp={() => setPage('help')}
       onQuests={() => setPage('quests')}
+      onHealth={() => setPage('health')}
     />
   )
 }
