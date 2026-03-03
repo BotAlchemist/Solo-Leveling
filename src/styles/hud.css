@@ -1156,3 +1156,105 @@ html, body, #root {
   font-size: 1rem;
   line-height: 1.4;
 }
+
+/* ============================================================
+   Mobile overrides  (≤ 600 px)
+   ============================================================ */
+@media (max-width: 600px) {
+
+  /* ── Base font size ── */
+  html, body, #root {
+    font-size: 15px;
+  }
+
+  /* ── Header ── */
+  .hud-header {
+    padding: 10px 14px;
+  }
+
+  .hud-brand {
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Main content area ── */
+  .hud-content {
+    padding: 16px 12px 40px;
+    max-width: 100%;
+  }
+
+  /* ── Cards ── */
+  .hud-card {
+    padding: 16px 16px;
+  }
+
+  /* ── Login page ── */
+  .hud-login-root {
+    padding: 12px;
+    align-items: flex-start;
+    padding-top: max(16px, env(safe-area-inset-top, 16px));
+  }
+
+  .hud-login-card {
+    padding: 24px 18px 20px;
+    max-width: 100%;
+  }
+
+  .hud-login-brand {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+  }
+
+  /* ── Buttons ── */
+  .hud-btn {
+    font-size: 0.72rem;
+    padding: 8px 14px;
+  }
+
+  .hud-btn-sm {
+    font-size: 0.68rem;
+    padding: 6px 10px;
+  }
+
+  /* ── Category selector ── */
+  .category-selector {
+    gap: 6px;
+  }
+
+  .category-card {
+    padding: 7px 10px;
+    font-size: 0.72rem;
+  }
+
+  /* ── Stats page ── */
+  .stats-radar-wrap {
+    height: 240px;
+  }
+
+  /* ── Settings page ── */
+  .settings-header-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ── Help page ── */
+  .rank-table {
+    font-size: 0.72rem;
+  }
+
+  .help-step {
+    font-size: 0.78rem;
+  }
+
+  /* ── Log entries ── */
+  .log-entry {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* ── Textarea / Input — min 16px prevents iOS auto-zoom ── */
+  .hud-textarea,
+  .hud-input {
+    font-size: 16px;
+  }
+}

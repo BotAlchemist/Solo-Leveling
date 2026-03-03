@@ -6,6 +6,7 @@ interface HelpPageProps {
   onLogout?: () => void;
   onSettings?: () => void;
   onStats?: () => void;
+  onQuests?: () => void;
 }
 
 const RANKS = [
@@ -17,9 +18,9 @@ const RANKS = [
   { rank: "E", xp: "0–4",    color: "#445566", description: "Entry — just starting out" },
 ];
 
-export default function HelpPage({ onBack, onLogout, onSettings, onStats }: HelpPageProps) {
+export default function HelpPage({ onBack, onLogout, onSettings, onStats, onQuests }: HelpPageProps) {
   return (
-    <HUDLayout onLogout={onLogout} onSettings={onSettings} onStats={onStats}>
+    <HUDLayout onLogout={onLogout} onSettings={onSettings} onStats={onStats} onQuests={onQuests}>
       <div className="help-page">
 
         {/* Header */}

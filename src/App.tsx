@@ -5,8 +5,9 @@ import DailyLogPage from './pages/DailyLogPage'
 import SettingsPage from './pages/SettingsPage'
 import StatsPage from './pages/StatsPage'
 import HelpPage from './pages/HelpPage'
+import QuestsPage from './pages/QuestsPage'
 
-type Page = 'login' | 'app' | 'settings' | 'stats' | 'help'
+type Page = 'login' | 'app' | 'settings' | 'stats' | 'help' | 'quests'
 
 function App() {
   const [page, setPage] = useState<Page>('login')
@@ -31,6 +32,7 @@ function App() {
         onLogout={handleLogout}
         onSettings={() => setPage('settings')}
         onHelp={() => setPage('help')}
+        onQuests={() => setPage('quests')}
       />
     )
   }
@@ -42,6 +44,19 @@ function App() {
         onLogout={handleLogout}
         onSettings={() => setPage('settings')}
         onStats={() => setPage('stats')}
+        onQuests={() => setPage('quests')}
+      />
+    )
+  }
+
+  if (page === 'quests') {
+    return (
+      <QuestsPage
+        onBack={() => setPage('app')}
+        onLogout={handleLogout}
+        onSettings={() => setPage('settings')}
+        onStats={() => setPage('stats')}
+        onHelp={() => setPage('help')}
       />
     )
   }
@@ -52,6 +67,7 @@ function App() {
       onSettings={() => setPage('settings')}
       onStats={() => setPage('stats')}
       onHelp={() => setPage('help')}
+      onQuests={() => setPage('quests')}
     />
   )
 }

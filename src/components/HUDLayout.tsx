@@ -9,6 +9,7 @@ interface HUDLayoutProps {
   onSettings?: () => void;
   onStats?: () => void;
   onHelp?: () => void;
+  onQuests?: () => void;
 }
 
 export default function HUDLayout({
@@ -19,6 +20,7 @@ export default function HUDLayout({
   onSettings,
   onStats,
   onHelp,
+  onQuests,
 }: HUDLayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -39,7 +41,7 @@ export default function HUDLayout({
     fn?.();
   };
 
-  const hasActions = onStats || onSettings || onLogout || onHelp;
+  const hasActions = onStats || onSettings || onLogout || onHelp || onQuests;
 
   return (
     <div className="hud-root">
@@ -52,6 +54,11 @@ export default function HUDLayout({
 
           {/* Desktop buttons — hidden on mobile via CSS */}
           <div className="hud-nav-desktop">
+            {onQuests && (
+              <button className="hud-btn hud-btn-sm" onClick={onQuests} title="Quests">
+                ☆ QUESTS
+              </button>
+            )}
             {onStats && (
               <button className="hud-btn hud-btn-sm" onClick={onStats} title="Stats">
                 ◈ STATS
@@ -88,6 +95,11 @@ export default function HUDLayout({
 
               {menuOpen && (
                 <div className="hud-dropdown">
+                  {onQuests && (
+                    <button className="hud-dropdown-item" onClick={() => closeAndCall(onQuests)}>
+                      ☆ QUESTS
+                    </button>
+                  )}
                   {onStats && (
                     <button className="hud-dropdown-item" onClick={() => closeAndCall(onStats)}>
                       ◈ STATS
