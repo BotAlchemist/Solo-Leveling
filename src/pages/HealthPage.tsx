@@ -20,62 +20,21 @@ interface MealEntry {
   description: string;
   mealType: string;
   hp_points: number | null;
-}
-
-interface FoodItem {
-  name: string;
-  calories: number;
-  protein_g: number;
-  carbs_g: number;
-  fat_g: number;
-  fibre_g: number;
-  micros: {
-    vitamin_a_mcg: number;
-    vitamin_c_mg: number;
-    vitamin_d_mcg: number;
-    vitamin_b12_mcg: number;
-    calcium_mg: number;
-    iron_mg: number;
-    sodium_mg: number;
-    potassium_mg: number;
-    magnesium_mg: number;
-    zinc_mg: number;
-  };
-}
-
-interface MealAnalysis {
-  mealType: string;
-  description: string;
-  calories: number;
-  protein_g: number;
-  carbs_g: number;
-  fat_g: number;
-  fibre_g: number;
-  micros: {
-    vitamin_a_mcg: number;
-    vitamin_c_mg: number;
-    vitamin_d_mcg: number;
-    vitamin_b12_mcg: number;
-    calcium_mg: number;
-    iron_mg: number;
-    sodium_mg: number;
-    potassium_mg: number;
-    magnesium_mg: number;
-    zinc_mg: number;
-  };
-  items?: FoodItem[];
-}
-
-interface AnalysisResult {
-  summary: {
-    total_calories: number;
+  // Nutrition — populated by LLM after logging
+  calories?: number;
+  protein_g?: number;
+  carbs_g?: number;
+  fat_g?: number;
+  fibre_g?: number;
+  micros?: Record<string, number>;
+  items?: Array<{
+    name: string;
+    calories: number;
     protein_g: number;
     carbs_g: number;
     fat_g: number;
     fibre_g: number;
-  };
-  meals: MealAnalysis[];
-  analyzed_at?: string;
+  }>;
 }
 
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
@@ -111,34 +70,10 @@ export default function HealthPage({ onBack, onLogout, onSettings, onStats, onHe
   // Per-row delete loading
   const [deletingTs, setDeletingTs]   = useState<string | null>(null);
 
-  // Analysis
-  const [analysis, setAnalysis]       = useState<AnalysisResult | null>(null);
-  const [analyzing, setAnalyzing]     = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-
-  // Targets from profile (localStorage cache)
+  // Targets from profile
   const profile = getProfile();
   const calorieTarget = profile.calorie_target;
   const proteinTarget = profile.protein_target;
-
-  // ── Load meals ───────────────────────────────────────────────────────
-  useEffect(() => {
-    setLoading(true);
-    apiGet<{ meals: MealEntry[] }>(`/meals?date=${dateFilter}`)
-      .then((res) => setMeals(res.meals))
-      .catch(() => pushToast("SYSTEM: Failed to load meals."))
-      .finally(() => setLoading(false));
-  }, [dateFilter]);
-
-  // ── Load cached analysis for the selected date ────────────────────────
-  useEffect(() => {
-    setAnalysis(null);
-    apiGet<{ analysis: AnalysisResult | null; analyzed_at?: string }>(`/meals/analyze?date=${dateFilter}`)
-      .then((res) => {
-        if (res.analysis) setAnalysis({ ...res.analysis, analyzed_at: res.analyzed_at });
-      })
-      .catch(() => {}); // silent fail — analysis is optional
-  }, [dateFilter]);
 
   const pushToast = (text: string) => {
     setToasts((prev) => [...prev, { id: crypto.randomUUID(), text }]);
@@ -148,25 +83,16 @@ export default function HealthPage({ onBack, onLogout, onSettings, onStats, onHe
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // ── Analyze meals ─────────────────────────────────────────────────────
-  const handleAnalyze = async () => {
-    if (analyzing || meals.length === 0) return;
-    setAnalyzing(true);
-    try {
-      const res = await apiPost<{ analysis: AnalysisResult; analyzed_at: string }>("/meals/analyze", {
-        date: dateFilter,
-        meals: meals.map((m) => ({ mealType: m.mealType, description: m.description })),
-      });
-      setAnalysis({ ...res.analysis, analyzed_at: res.analyzed_at });
-      pushToast("SYSTEM: Nutrition analysis complete.");
-    } catch {
-      pushToast("SYSTEM: Analysis failed. Verify Bedrock permissions.");
-    } finally {
-      setAnalyzing(false);
-    }
-  };
+  // ── Load meals on date change ────────────────────────────────────────
+  useEffect(() => {
+    setLoading(true);
+    apiGet<{ meals: MealEntry[] }>(`/meals?date=${dateFilter}`)
+      .then((res) => setMeals(res.meals))
+      .catch(() => pushToast("SYSTEM: Failed to load meals."))
+      .finally(() => setLoading(false));
+  }, [dateFilter]);
 
-  // ── Log meal ─────────────────────────────────────────────────────────
+  // ── Log meal (auto-analyzed by backend) ─────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = description.trim();
@@ -174,22 +100,28 @@ export default function HealthPage({ onBack, onLogout, onSettings, onStats, onHe
 
     setSubmitting(true);
     try {
-      const res = await apiPost<{ timestamp: string }>("/meals", {
+      const res = await apiPost<MealEntry & { message: string; timestamp: string }>("/meals", {
         description: trimmed,
         mealType,
       });
       const newEntry: MealEntry = {
-        timestamp: res.timestamp,
+        timestamp:   res.timestamp,
         description: trimmed,
         mealType,
-        hp_points: null,
+        hp_points:   null,
+        calories:    res.calories,
+        protein_g:   res.protein_g,
+        carbs_g:     res.carbs_g,
+        fat_g:       res.fat_g,
+        fibre_g:     res.fibre_g,
+        micros:      res.micros,
+        items:       res.items,
       };
-      // Prepend only if it matches the current date filter
       if (res.timestamp.startsWith(dateFilter)) {
         setMeals((prev) => [newEntry, ...prev]);
       }
       setDescription("");
-      pushToast(`SYSTEM: Meal logged — HP analysis pending.`);
+      pushToast("SYSTEM: Meal logged with nutrition analysis.");
     } catch {
       pushToast("SYSTEM: Failed to log meal. Check connection.");
     } finally {
@@ -224,14 +156,21 @@ export default function HealthPage({ onBack, onLogout, onSettings, onStats, onHe
     if (!editTarget || !editDesc.trim() || editSaving) return;
     setEditSaving(true);
     try {
-      await apiPut("/meals", { timestamp: editTarget.timestamp, description: editDesc.trim(), mealType: editType });
+      const res = await apiPut<MealEntry & { message: string }>("/meals", {
+        timestamp: editTarget.timestamp,
+        description: editDesc.trim(),
+        mealType: editType,
+      });
       setMeals((prev) => prev.map((m) =>
         m.timestamp === editTarget.timestamp
-          ? { ...m, description: editDesc.trim(), mealType: editType }
+          ? { ...m, description: editDesc.trim(), mealType: editType,
+              calories: res.calories, protein_g: res.protein_g,
+              carbs_g: res.carbs_g, fat_g: res.fat_g, fibre_g: res.fibre_g,
+              micros: res.micros, items: res.items }
           : m
       ));
       setEditTarget(null);
-      pushToast("SYSTEM: Meal updated.");
+      pushToast("SYSTEM: Meal updated with fresh nutrition analysis.");
     } catch {
       pushToast("SYSTEM: Failed to update meal.");
     } finally {
@@ -255,139 +194,6 @@ export default function HealthPage({ onBack, onLogout, onSettings, onStats, onHe
       onQuests={onQuests}
     >
       <SystemToast messages={toasts} onExpire={expireToast} />
-
-      {/* ── More Details modal ── */}
-      {showDetails && analysis && (
-        <div style={{
-          position: "fixed", inset: 0,
-          background: "rgba(0,0,0,0.82)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          zIndex: 1000, padding: "16px",
-        }}>
-          <div className="hud-card" style={{
-            width: "100%", maxWidth: 560,
-            maxHeight: "88vh",
-            display: "flex", flexDirection: "column",
-            overflow: "hidden",
-          }}>
-            {/* Sticky header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexShrink: 0 }}>
-              <h2 className="hud-section-title" style={{ marginBottom: 0, fontSize: "0.85rem" }}>⚡ DETAILED NUTRITION BREAKDOWN</h2>
-              <button className="hud-btn hud-btn-sm" onClick={() => setShowDetails(false)}>✕ Close</button>
-            </div>
-            {/* Scrollable body */}
-            <div style={{ overflowY: "auto", flex: 1, paddingRight: "4px" }}>
-
-            {/* Per-meal breakdown */}
-            {analysis.meals.map((meal, i) => (
-              <div key={i} style={{ marginBottom: "1.4rem", paddingBottom: "1.2rem", borderBottom: i < analysis.meals.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none" }}>
-
-                {/* Meal header */}
-                <div style={{ fontFamily: "var(--font-hud)", fontSize: "0.62rem", letterSpacing: "0.16em", color: "var(--clr-accent)", textTransform: "uppercase", marginBottom: "4px" }}>
-                  {meal.mealType || "Meal"}
-                </div>
-                <div style={{ fontSize: "0.8rem", color: "var(--clr-text)", marginBottom: "10px", opacity: 0.7, fontStyle: "italic" }}>
-                  {meal.description}
-                </div>
-
-                {/* Meal-level macro pills */}
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
-                  {([
-                    { label: "Cal",     val: meal.calories,   unit: "kcal", hi: true },
-                    { label: "Protein", val: meal.protein_g,  unit: "g",    hi: false },
-                    { label: "Carbs",   val: meal.carbs_g,    unit: "g",    hi: false },
-                    { label: "Fat",     val: meal.fat_g,      unit: "g",    hi: false },
-                    { label: "Fibre",   val: meal.fibre_g,    unit: "g",    hi: false },
-                  ] as const).map(({ label, val, unit, hi }) => (
-                    <div key={label} style={{
-                      background: hi ? "rgba(0,255,255,0.07)" : "rgba(255,255,255,0.04)",
-                      border: `1px solid ${hi ? "rgba(0,255,255,0.2)" : "rgba(255,255,255,0.1)"}`,
-                      borderRadius: "5px", padding: "4px 9px",
-                      fontFamily: "var(--font-hud)", fontSize: "0.68rem",
-                    }}>
-                      <span style={{ opacity: 0.75, marginRight: 4 }}>{label}</span>
-                      <span style={{ color: hi ? "var(--clr-neon)" : "var(--clr-text)" }}>{val}{unit}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Per-item breakdown */}
-                {meal.items && meal.items.length > 0 && (
-                  <div style={{ marginBottom: "10px" }}>
-                    <div style={{ fontFamily: "var(--font-hud)", fontSize: "0.58rem", letterSpacing: "0.14em", color: "var(--clr-text-dim)", textTransform: "uppercase", marginBottom: "6px", opacity: 0.7 }}>
-                      Individual Items
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      {meal.items.map((item, j) => (
-                        <div key={j} style={{
-                          background: "rgba(255,255,255,0.025)",
-                          border: "1px solid rgba(255,255,255,0.07)",
-                          borderRadius: "6px",
-                          padding: "8px 10px",
-                        }}>
-                          {/* Item name */}
-                          <div style={{ fontSize: "0.78rem", color: "var(--clr-text)", marginBottom: "6px", fontWeight: 500 }}>
-                            {item.name}
-                          </div>
-                          {/* Item macros */}
-                          <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", marginBottom: "6px" }}>
-                            {([
-                              { label: "Cal",     val: item.calories,  unit: "kcal", hi: true },
-                              { label: "Protein", val: item.protein_g, unit: "g",    hi: false },
-                              { label: "Carbs",   val: item.carbs_g,   unit: "g",    hi: false },
-                              { label: "Fat",     val: item.fat_g,     unit: "g",    hi: false },
-                              { label: "Fibre",   val: item.fibre_g,   unit: "g",    hi: false },
-                            ] as const).map(({ label, val, unit, hi }) => (
-                              <div key={label} style={{
-                                background: hi ? "rgba(0,255,255,0.05)" : "rgba(255,255,255,0.03)",
-                                border: `1px solid ${hi ? "rgba(0,255,255,0.15)" : "rgba(255,255,255,0.07)"}`,
-                                borderRadius: "4px", padding: "3px 7px",
-                                fontFamily: "var(--font-hud)", fontSize: "0.63rem",
-                              }}>
-                                <span style={{ opacity: 0.7, marginRight: 3 }}>{label}</span>
-                                <span style={{ color: hi ? "var(--clr-neon)" : "var(--clr-text)" }}>{val}{unit}</span>
-                              </div>
-                            ))}
-                          </div>
-                          {/* Item micros */}
-                          {item.micros && (
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px 10px" }}>
-                              {(Object.entries(item.micros) as [string, number][]).map(([key, val]) => (
-                                <div key={key} style={{ fontFamily: "var(--font-hud)", fontSize: "0.58rem", color: "var(--clr-text-dim)", display: "flex", justifyContent: "space-between", padding: "1px 0", opacity: 0.8 }}>
-                                  <span style={{ opacity: 0.75 }}>{key.replace(/_/g, " ")}</span>
-                                  <span>{val}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Meal-level micros (totals) */}
-                {meal.micros && (
-                  <details style={{ marginTop: "4px" }}>
-                    <summary style={{ fontFamily: "var(--font-hud)", fontSize: "0.6rem", color: "var(--clr-text-dim)", letterSpacing: "0.12em", textTransform: "uppercase", cursor: "pointer", userSelect: "none", opacity: 0.9 }}>
-                      Meal Micros Total
-                    </summary>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 12px", marginTop: "6px" }}>
-                      {(Object.entries(meal.micros) as [string, number][]).map(([key, val]) => (
-                        <div key={key} style={{ fontFamily: "var(--font-hud)", fontSize: "0.62rem", color: "var(--clr-text-dim)", display: "flex", justifyContent: "space-between", padding: "1px 0" }}>
-                          <span style={{ opacity: 0.8 }}>{key.replace(/_/g, " ")}</span>
-                          <span style={{ color: "var(--clr-text)" }}>{val}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                )}
-              </div>
-            ))}
-            </div>{/* end scrollable body */}
-          </div>
-        </div>
-      )}
 
       {/* ── Edit modal ── */}
       {editTarget && (
@@ -453,7 +259,7 @@ export default function HealthPage({ onBack, onLogout, onSettings, onStats, onHe
           </button>
         </div>
         <p style={{ color: "var(--clr-text-dim)", marginTop: "0.4rem", fontSize: "0.82rem" }}>
-          Log your meals. Click <strong style={{ color: "var(--clr-neon)" }}>Analyze</strong> for AI-powered nutrition breakdown.
+          Log your meals below. Nutrition is analyzed automatically after each entry.
         </p>
       </div>
 
@@ -491,108 +297,45 @@ export default function HealthPage({ onBack, onLogout, onSettings, onStats, onHe
           </div>
         )}
 
-        {/* State: meals logged, no analysis */}
-        {meals.length > 0 && !analysis && (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            gap: "1rem", padding: "0.75rem 1rem",
-            background: "rgba(255,255,255,0.03)",
-            border: "1px dashed rgba(255,255,255,0.12)",
-            borderRadius: "8px",
-          }}>
+        {/* Totals derived from per-meal nutrition */}
+        {meals.length > 0 && (() => {
+          const analyzed = meals.filter((m) => m.calories != null);
+          if (analyzed.length === 0) return null;
+          const totalCal  = analyzed.reduce((s, m) => s + (m.calories  ?? 0), 0);
+          const totalProt = analyzed.reduce((s, m) => s + (m.protein_g ?? 0), 0);
+          const totalCarb = analyzed.reduce((s, m) => s + (m.carbs_g   ?? 0), 0);
+          const totalFat  = analyzed.reduce((s, m) => s + (m.fat_g     ?? 0), 0);
+          const totalFib  = analyzed.reduce((s, m) => s + (m.fibre_g   ?? 0), 0);
+          return (
             <div>
-              <div style={{ fontSize: "0.82rem", color: "var(--clr-text)", marginBottom: "2px" }}>
-                {meals.length} meal{meals.length !== 1 ? "s" : ""} ready to analyze
+              <NutritionBar label="Calories" value={Math.round(totalCal)}  unit="kcal" target={calorieTarget} color="var(--clr-neon)" />
+              <NutritionBar label="Protein"  value={+totalProt.toFixed(1)} unit="g"    target={proteinTarget} color="var(--clr-success)" />
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "0.75rem" }}>
+                {([
+                  { label: "Carbs", val: +totalCarb.toFixed(1), color: "#c792ea" },
+                  { label: "Fat",   val: +totalFat.toFixed(1),  color: "#ffcb6b" },
+                  { label: "Fibre", val: +totalFib.toFixed(1),  color: "#89ddff" },
+                ] as const).map(({ label, val, color }) => (
+                  <div key={label} style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "8px", padding: "6px 12px",
+                    fontFamily: "var(--font-hud)", fontSize: "0.7rem",
+                    display: "flex", flexDirection: "column", alignItems: "center", minWidth: "60px",
+                  }}>
+                    <span style={{ color, fontSize: "0.85rem", fontWeight: 700 }}>{val}g</span>
+                    <span style={{ opacity: 0.5, fontSize: "0.6rem", marginTop: "1px" }}>{label}</span>
+                  </div>
+                ))}
               </div>
-              <div style={{ fontSize: "0.72rem", color: "var(--clr-text-dim)", opacity: 0.9 }}>
-                Get calories, macros &amp; micronutrient breakdown
-              </div>
-            </div>
-            <button
-              className="hud-btn"
-              style={{ fontSize: "0.78rem", padding: "8px 18px", whiteSpace: "nowrap", flexShrink: 0 }}
-              onClick={handleAnalyze}
-              disabled={analyzing}
-            >
-              {analyzing ? "⧗ Analyzing…" : "⚡ Analyze"}
-            </button>
-          </div>
-        )}
-
-        {/* State: analysis ready */}
-        {analysis && (
-          <div>
-            {/* Re-analyze row */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.85rem" }}>
-              <div style={{ fontFamily: "var(--font-hud)", fontSize: "0.6rem", letterSpacing: "0.14em", color: "var(--clr-accent)", textTransform: "uppercase" }}>
-                Nutrition Summary
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                {analysis.analyzed_at && (
-                  <span style={{ fontFamily: "var(--font-hud)", fontSize: "0.58rem", color: "var(--clr-text-dim)", opacity: 0.9 }}>
-                    updated {new Date(analysis.analyzed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                )}
-                <button
-                  className="hud-btn hud-btn-sm"
-                  style={{ fontSize: "0.65rem" }}
-                  onClick={handleAnalyze}
-                  disabled={analyzing}
-                >
-                  {analyzing ? "⧗" : "↺ Re-analyze"}
-                </button>
-                <button
-                  className="hud-btn hud-btn-sm"
-                  style={{ fontSize: "0.65rem" }}
-                  onClick={() => setShowDetails(true)}
-                >
-                  ▼ Details
-                </button>
-              </div>
-            </div>
-
-            {/* Calories */}
-            <NutritionBar
-              label="Calories"
-              value={analysis.summary.total_calories}
-              unit="kcal"
-              target={calorieTarget}
-              color="var(--clr-neon)"
-            />
-            {/* Protein */}
-            <NutritionBar
-              label="Protein"
-              value={analysis.summary.protein_g}
-              unit="g"
-              target={proteinTarget}
-              color="var(--clr-success)"
-            />
-            {/* Carbs / Fat / Fibre pills */}
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "0.75rem" }}>
-              {([
-                { label: "Carbs", val: analysis.summary.carbs_g,  color: "#c792ea" },
-                { label: "Fat",   val: analysis.summary.fat_g,    color: "#ffcb6b" },
-                { label: "Fibre", val: analysis.summary.fibre_g,  color: "#89ddff" },
-              ] as const).map(({ label, val, color }) => (
-                <div key={label} style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "8px",
-                  padding: "6px 12px",
-                  fontFamily: "var(--font-hud)",
-                  fontSize: "0.7rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  minWidth: "60px",
-                }}>
-                  <span style={{ color, fontSize: "0.85rem", fontWeight: 700 }}>{val}g</span>
-                  <span style={{ opacity: 0.5, fontSize: "0.6rem", marginTop: "1px" }}>{label}</span>
+              {analyzed.length < meals.length && (
+                <div style={{ fontSize: "0.72rem", color: "var(--clr-text-dim)", marginTop: "0.6rem", opacity: 0.8 }}>
+                  ⧗ Analyzing {meals.length - analyzed.length} meal{meals.length - analyzed.length > 1 ? "s" : ""}…
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* ── Log Meal Form ── */}
@@ -730,40 +473,115 @@ interface MealRowProps {
 
 function MealRow({ meal, deleting, onEdit, onDelete }: MealRowProps) {
   return (
-    <div
-      className="log-entry"
-      style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}
-    >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span className="log-text">{meal.description}</span>
-        <span style={{ display: "block", fontFamily: "var(--font-hud)", fontSize: "0.65rem", color: "var(--clr-text-dim)", marginTop: "2px" }}>
-          {formatTime(meal.timestamp)}
-        </span>
+    <div className="log-entry" style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+      {/* Top row: description + actions */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span className="log-text">{meal.description}</span>
+          <span style={{ display: "block", fontFamily: "var(--font-hud)", fontSize: "0.65rem", color: "var(--clr-text-dim)", marginTop: "2px" }}>
+            {formatTime(meal.timestamp)}
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+          <button
+            className="hud-btn hud-btn-sm"
+            style={{ fontSize: "0.68rem", padding: "4px 8px" }}
+            onClick={onEdit}
+            title="Edit meal"
+          >✎</button>
+          <button
+            className="hud-btn hud-btn-sm"
+            style={{ fontSize: "0.68rem", padding: "4px 8px", color: "#ff6b6b", borderColor: "rgba(255,107,107,0.4)" }}
+            onClick={onDelete}
+            disabled={deleting}
+            title="Delete meal"
+          >{deleting ? "…" : "✕"}</button>
+        </div>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-        <span style={{
-          fontFamily: "var(--font-hud)",
-          fontSize: "0.75rem",
-          color: meal.hp_points != null ? "var(--clr-success)" : "var(--clr-text-dim)",
-          opacity: meal.hp_points != null ? 1 : 0.45,
-          whiteSpace: "nowrap",
-        }}>
-          {meal.hp_points != null ? `+${meal.hp_points} HP` : "HP pending"}
-        </span>
-        <button
-          className="hud-btn hud-btn-sm"
-          style={{ fontSize: "0.68rem", padding: "4px 8px" }}
-          onClick={onEdit}
-          title="Edit meal"
-        >✎</button>
-        <button
-          className="hud-btn hud-btn-sm"
-          style={{ fontSize: "0.68rem", padding: "4px 8px", color: "#ff6b6b", borderColor: "rgba(255,107,107,0.4)" }}
-          onClick={onDelete}
-          disabled={deleting}
-          title="Delete meal"
-        >{deleting ? "…" : "✕"}</button>
-      </div>
+
+      {/* Nutrition pills — shown once analysis returns */}
+      {meal.calories != null ? (
+        <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
+          {([
+            { label: "Cal",     val: meal.calories,   unit: "kcal", hi: true  },
+            { label: "Protein", val: meal.protein_g,  unit: "g",    hi: false },
+            { label: "Carbs",   val: meal.carbs_g,    unit: "g",    hi: false },
+            { label: "Fat",     val: meal.fat_g,      unit: "g",    hi: false },
+            { label: "Fibre",   val: meal.fibre_g,    unit: "g",    hi: false },
+          ] as const).map(({ label, val, unit, hi }) => (
+            <div key={label} style={{
+              background: hi ? "rgba(0,255,255,0.06)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${hi ? "rgba(0,255,255,0.18)" : "rgba(255,255,255,0.08)"}`,
+              borderRadius: "4px", padding: "2px 7px",
+              fontFamily: "var(--font-hud)", fontSize: "0.62rem",
+            }}>
+              <span style={{ opacity: 0.65, marginRight: 3 }}>{label}</span>
+              <span style={{ color: hi ? "var(--clr-neon)" : "var(--clr-text)" }}>{val}{unit}</span>
+            </div>
+          ))}
+          {/* Collapsible items breakdown */}
+          {meal.items && meal.items.length > 0 && (
+            <details style={{ width: "100%", marginTop: "2px" }}>
+              <summary style={{ fontFamily: "var(--font-hud)", fontSize: "0.58rem", color: "var(--clr-text-dim)", cursor: "pointer", userSelect: "none", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                ▸ {meal.items.length} item{meal.items.length > 1 ? "s" : ""}
+              </summary>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "6px", paddingLeft: "4px" }}>
+                {meal.items.map((item, j) => (
+                  <div key={j} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "0.75rem", color: "var(--clr-text)", opacity: 0.85, flex: 1 }}>{item.name}</span>
+                    <span style={{ fontFamily: "var(--font-hud)", fontSize: "0.62rem", color: "var(--clr-neon)", whiteSpace: "nowrap" }}>
+                      {item.calories} kcal · {item.protein_g}g P · {item.carbs_g}g C · {item.fat_g}g F
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+          {/* Collapsible micros breakdown */}
+          {meal.micros && Object.keys(meal.micros).length > 0 && (
+            <details style={{ width: "100%", marginTop: "2px" }}>
+              <summary style={{ fontFamily: "var(--font-hud)", fontSize: "0.58rem", color: "var(--clr-text-dim)", cursor: "pointer", userSelect: "none", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                ▸ Micros
+              </summary>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "6px", paddingLeft: "4px" }}>
+                {(
+                  [
+                    { key: "vitamin_a_mcg",   label: "Vit A",   unit: "µg" },
+                    { key: "vitamin_c_mg",    label: "Vit C",   unit: "mg" },
+                    { key: "vitamin_d_mcg",   label: "Vit D",   unit: "µg" },
+                    { key: "vitamin_e_mg",    label: "Vit E",   unit: "mg" },
+                    { key: "vitamin_k_mcg",   label: "Vit K",   unit: "µg" },
+                    { key: "vitamin_b12_mcg", label: "Vit B12", unit: "µg" },
+                    { key: "calcium_mg",      label: "Ca",      unit: "mg" },
+                    { key: "iron_mg",         label: "Fe",      unit: "mg" },
+                    { key: "sodium_mg",       label: "Na",      unit: "mg" },
+                    { key: "potassium_mg",    label: "K",       unit: "mg" },
+                    { key: "magnesium_mg",    label: "Mg",      unit: "mg" },
+                    { key: "zinc_mg",         label: "Zn",      unit: "mg" },
+                    { key: "omega3_g",        label: "Ω-3",     unit: "g"  },
+                  ] as { key: string; label: string; unit: string }[]
+                )
+                  .filter(({ key }) => meal.micros![key] != null)
+                  .map(({ key, label, unit }) => (
+                    <div key={key} style={{
+                      background: "rgba(255,255,255,0.02)",
+                      border: "1px solid rgba(255,255,255,0.07)",
+                      borderRadius: "4px", padding: "2px 7px",
+                      fontFamily: "var(--font-hud)", fontSize: "0.58rem",
+                    }}>
+                      <span style={{ opacity: 0.55, marginRight: 3 }}>{label}</span>
+                      <span style={{ color: "var(--clr-text-dim)" }}>{meal.micros![key]}{unit}</span>
+                    </div>
+                  ))}
+              </div>
+            </details>
+          )}
+        </div>
+      ) : (
+        <div style={{ fontFamily: "var(--font-hud)", fontSize: "0.62rem", color: "var(--clr-text-dim)", opacity: 0.7 }}>
+          ⧗ Analyzing nutrition…
+        </div>
+      )}
     </div>
   );
 }
